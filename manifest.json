@@ -1,9 +1,9 @@
 {
   "Author": "KotoLetta",
-  "Name": "Glam Spy",
+  "Name": "GlamSpy",
   "Punchline": "Inspect items from character inspect windows.",
   "Description": "Adds a context menu action to open hovered items in an external wiki.",
-  "InternalName": "Glam Spy",
+  "InternalName": "GlamSpy",
   "AssemblyVersion": "1.0.0.0",
   "RepoUrl": "https://github.com/KotoLetta/kotoffxivrepo",
   "ApplicableVersion": "any",

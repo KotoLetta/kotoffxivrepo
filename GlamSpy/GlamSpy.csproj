@@ -5,8 +5,8 @@
 
     <PropertyGroup>
         <Author>KotoLetta</Author>
-        <Name>Glam Spy</Name>
-        <InternalName>Glam Spy</InternalName>
+        <Name>GlamSpy</Name>
+        <InternalName>GlamSpy</InternalName>
         <Punchline>Inspect items from character inspect windows.</Punchline>
         <Description>Adds a context menu action to open hovered items in an external wiki.</Description>
         <Tags>inspect;items;context-menu;glamour</Tags>
