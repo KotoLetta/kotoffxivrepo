@@ -1,0 +1,15 @@
+<Project Sdk="Dalamud.NET.Sdk/14.0.1">
+    <PropertyGroup>
+        <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <Author>KotoLetta</Author>
+        <Name>Glam Spy</Name>
+        <InternalName>Glam Spy</InternalName>
+        <Punchline>Inspect items from character inspect windows.</Punchline>
+        <Description>Adds a context menu action to open hovered items in an external wiki.</Description>
+        <Tags>inspect;items;context-menu;glamour</Tags>
+        <AcceptsFeedback>false</AcceptsFeedback>
+    </PropertyGroup>
+</Project>
