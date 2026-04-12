@@ -18,5 +18,25 @@
     "IsHide": false,
     "IsTestingExclusive": false,
     "LoadPriority": 0
+  },
+  {
+    "Author": "Frogworks Interactive",
+    "Name": "OOF!",
+    "Punchline": "Play OOF! on fall and/or death. The Only Plugin You Need!",
+    "Description": "Play the OOF! sound on fall and/or death. Includes options for deaths, fall damage, and custom audio.",
+    "InternalName": "OofPlugin",
+    "AssemblyVersion": "1.3.6.0",
+    "RepoUrl": "https://github.com/KotoLetta/kotoffxivrepo",
+    "ApplicableVersion": "any",
+    "DalamudApiLevel": 14,
+    "DownloadLinkInstall": "https://github.com/KotoLetta/kotoffxivrepo/releases/latest/download/OofPlugin.zip",
+    "DownloadLinkUpdate": "https://github.com/KotoLetta/kotoffxivrepo/releases/latest/download/OofPlugin.zip",
+    "IconUrl": "https://raw.githubusercontent.com/KotoLetta/kotoffxivrepo/main/Data/logo.png",
+    "Tags": [ "oof", "fall-damage", "death", "sound", "notification" ],
+    "CategoryTags": [ "other" ],
+    "Changelog": "Initial release in this plugin collection.",
+    "IsHide": false,
+    "IsTestingExclusive": false,
+    "LoadPriority": 0
   }
-]   
+]

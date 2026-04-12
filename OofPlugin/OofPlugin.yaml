@@ -1,0 +1,20 @@
+name: OOF!
+author: Frogworks Interactive
+punchline: Play OOF! on fall and/or death. The Only Plugin You Need!
+description: |-
+  Play the OOF! sound on fall and/or death.
+
+  Features include:
+    - party, alliance, and self death tracking
+    - fall damage detection
+    - custom audio support
+    - direct access to the OOF documentary link
+
+repo_url: https://github.com/KotoLetta/kotoffxivrepo
+internal_name: OofPlugin
+tags:
+  - Oof
+  - Fall Damage
+  - Death
+  - Sound
+  - Notification
