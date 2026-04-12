@@ -14,7 +14,7 @@ using System.Linq;
 namespace OofPlugin;
 
 public sealed class OofPlugin : IDalamudPlugin {
-  public string Name => "OOF";
+  public string Name => "OOFs!";
 
   private const string oofCommand = "/oof";
   private const string oofSettings = "/oofsettings";
