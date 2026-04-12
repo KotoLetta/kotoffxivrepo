@@ -138,13 +138,14 @@ internal class UIComponents {
   /// makes textbox draggable if text overflows
   /// theres no reason to use this over an input box but it was fun to make
   /// </summary>
-  public static void CustomDraggableText(string text, float rightsideSpacing) {
-    var WindowPos = ImGui.GetWindowPos();
+  public static void CustomDraggableText(string text, float width) {
+    var windowPos = ImGui.GetWindowPos();
     var draw = ImGui.GetWindowDrawList();
 
     var cursorPos = ImGui.GetCursorPos();
-    var panelMin = new Vector2(cursorPos.X + WindowPos.X, ImGui.GetItemRectMin().Y);
-    var panelMax = new Vector2(WindowPos.X + cursorPos.X + ImGui.GetContentRegionAvail().X - rightsideSpacing - ImGui.GetStyle().WindowPadding.X, ImGui.GetItemRectMax().Y);
+    var frameHeight = ImGui.GetFrameHeight();
+    var panelMin = new Vector2(windowPos.X + cursorPos.X, ImGui.GetCursorScreenPos().Y);
+    var panelMax = new Vector2(panelMin.X + width, panelMin.Y + frameHeight);
     var boxSize = panelMax - panelMin;
     var framePadding = ImGui.GetStyle().FramePadding;
 
@@ -270,4 +271,3 @@ internal class UIComponents {
   }
 
 }
-

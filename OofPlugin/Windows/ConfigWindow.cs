@@ -152,7 +152,8 @@ public class ConfigWindow : Window, IDisposable {
     var soundFileName = GetSoundFileSummary();
     var browseText = "Add Audio";
     var buttonWidth = UIComponents.CalcButtonSize(browseText) + ImGui.GetFontSize() * 1.4f;
-    UIComponents.CustomDraggableText(soundFileName, buttonWidth);
+    var summaryWidth = ImGui.GetContentRegionAvail().X - buttonWidth - ImGui.GetStyle().ItemSpacing.X;
+    UIComponents.CustomDraggableText(soundFileName, summaryWidth);
 
 
     ImGui.SameLine();
