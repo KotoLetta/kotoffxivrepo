@@ -108,8 +108,11 @@ public sealed class OofPlugin : IDalamudPlugin {
       return;
 
     // Always track self death if enabled (even while in party)
-    if (Configuration.OofOnDeathSelf)
-      DeadPlayersList.AddRemoveDeadPlayer(localPlayer);
+    if (Configuration.OofOnDeathSelf &&
+        DeadPlayersList.AddRemoveDeadPlayer(localPlayer)) {
+      SoundManager.PlayDeath(localPlayer.Position, localPlayer.Position,
+                             SoundManager.CancelToken.Token);
+    }
 
     if (Dalamud.PartyList != null && Dalamud.PartyList.Any()) {
       // Alliance members
@@ -126,7 +129,11 @@ public sealed class OofPlugin : IDalamudPlugin {
                 Dalamud.PartyList.CreateAllianceMemberReference(addr) ??
                 throw new NullReferenceException("alliance reference is null");
 
-            DeadPlayersList.AddRemoveDeadPlayer(allianceMember);
+            if (DeadPlayersList.AddRemoveDeadPlayer(allianceMember)) {
+              SoundManager.PlayDeath(localPlayer.Position,
+                                     allianceMember.Position,
+                                     SoundManager.CancelToken.Token);
+            }
           }
         }
         catch (Exception e) {
@@ -138,7 +145,10 @@ public sealed class OofPlugin : IDalamudPlugin {
       if (Configuration.OofOnDeathParty) {
         foreach (var member in Dalamud.PartyList) {
           if (member.Territory.RowId != Dalamud.ClientState.TerritoryType) return;
-          DeadPlayersList.AddRemoveDeadPlayer(member);
+          if (DeadPlayersList.AddRemoveDeadPlayer(member)) {
+            SoundManager.PlayDeath(localPlayer.Position, member.Position,
+                                   SoundManager.CancelToken.Token);
+          }
         }
       }
     }

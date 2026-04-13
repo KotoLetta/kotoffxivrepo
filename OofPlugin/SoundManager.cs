@@ -1,7 +1,8 @@
 using NAudio.Wave;
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,24 +10,47 @@ using System.Threading.Tasks;
 namespace OofPlugin;
 
 internal class SoundManager : IDisposable {
-  private readonly Configuration Configuration;
-  private readonly DeadPlayersList DeadPlayersList;
+  private sealed class PlaybackInstance : IDisposable {
+    public PlaybackInstance(WaveStream reader, WaveChannel32 audioStream,
+                            DirectSoundOut output) {
+      Reader = reader;
+      AudioStream = audioStream;
+      Output = output;
+    }
 
-  // sound
-  public bool isSoundPlaying { get; private set; } = false;
-  private DirectSoundOut? soundOut;
+    public WaveStream Reader { get; }
+    public WaveChannel32 AudioStream { get; }
+    public DirectSoundOut Output { get; }
+
+    public void Dispose() {
+      Output.Dispose();
+      AudioStream.Dispose();
+      Reader.Dispose();
+    }
+  }
+
+  private readonly Configuration Configuration;
+  private readonly object playbackLock = new();
+  private readonly List<PlaybackInstance> activePlaybacks = new();
+
+  public bool isSoundPlaying {
+    get {
+      lock (playbackLock) {
+        return activePlaybacks.Count > 0;
+      }
+    }
+  }
+
   private string[] soundFiles = Array.Empty<string>();
 
   internal CancellationTokenSource CancelToken;
 
   public SoundManager(OofPlugin plugin) {
     Configuration = plugin.Configuration;
-    DeadPlayersList = plugin.DeadPlayersList;
 
     LoadFile();
 
     CancelToken = new CancellationTokenSource();
-    Task.Run(() => OofAudioPolling(CancelToken.Token));
   }
 
   public void LoadFile() {
@@ -45,55 +69,73 @@ internal class SoundManager : IDisposable {
   }
 
   public void Stop() {
-    soundOut?.Pause();
-    soundOut?.Dispose();
-    soundOut = null;
+    PlaybackInstance[] playbacks;
+
+    lock (playbackLock) {
+      playbacks = activePlaybacks.ToArray();
+      activePlaybacks.Clear();
+    }
+
+    foreach (var playback in playbacks) {
+      playback.Output.Stop();
+      playback.Dispose();
+    }
   }
 
   public void Play(CancellationToken token, float volume = 1f) {
-    _ = Task.Run(() => {
-      isSoundPlaying = true;
+    if (token.IsCancellationRequested)
+      return;
 
-      WaveStream reader;
-      var soundFile = GetRandomSoundFile();
-      try {
-        reader = new MediaFoundationReader(soundFile);
+    var soundFile = GetRandomSoundFile();
+
+    WaveStream reader;
+    try {
+      reader = new MediaFoundationReader(soundFile);
+    }
+    catch (Exception ex) {
+      Dalamud.Log.Error("Failed to read sound file", ex);
+      return;
+    }
+
+    var audioStream = new WaveChannel32(reader) {
+      Volume = Configuration.Volume * volume,
+      PadWithZeroes = false // you need this or else playbackstopped event will not fire
+    };
+
+    var soundOut = new DirectSoundOut();
+    var playback = new PlaybackInstance(reader, audioStream, soundOut);
+    var playbackRegistered = false;
+
+    soundOut.PlaybackStopped += (_, _) => CleanupPlayback(playback);
+
+    try {
+      soundOut.Init(audioStream);
+
+      lock (playbackLock) {
+        activePlaybacks.Add(playback);
+        playbackRegistered = true;
       }
-      catch (Exception ex) {
-        isSoundPlaying = false;
-        Dalamud.Log.Error("Failed to read sound file", ex);
-        return;
-      }
 
-      var audioStream =
-          new WaveChannel32(reader) {
-            Volume = Configuration.Volume * volume,
-            PadWithZeroes = false // you need this or else playbackstopped event will not fire
-          };
+      soundOut.Play();
+    }
+    catch (Exception ex) {
+      if (playbackRegistered)
+        CleanupPlayback(playback);
+      else
+        playback.Dispose();
+      Dalamud.Log.Error("Failed to play sound", ex);
+    }
+  }
 
-      using (reader) {
-        soundOut?.Pause();
-        soundOut?.Dispose();
-        soundOut = new DirectSoundOut();
+  private void CleanupPlayback(PlaybackInstance playback) {
+    bool removed;
 
-        try {
-          soundOut.Init(audioStream);
-          soundOut.Play();
+    lock (playbackLock) {
+      removed = activePlaybacks.Remove(playback);
+    }
 
-          soundOut.PlaybackStopped += (_, _) => { isSoundPlaying = false; };
-        }
-        catch (Exception ex) {
-          isSoundPlaying = false;
-          Dalamud.Log.Error("Failed to play sound", ex);
-        }
-      }
-    }, token).ContinueWith((t) => {
-      t.Exception?.Handle((e) => {
-        Dalamud.Log.Error($"Failed to dispose DirectSoundOut {e} ");
-
-        return true;
-      });
-    });
+    if (removed)
+      playback.Dispose();
   }
 
   private string GetRandomSoundFile() {
@@ -104,49 +146,17 @@ internal class SoundManager : IDisposable {
     return soundFiles[Random.Shared.Next(soundFiles.Length)];
   }
 
-  private async Task OofAudioPolling(CancellationToken token) {
-    while (!token.IsCancellationRequested) {
-      try {
-        await Task.Delay(200, token);
+  public void PlayDeath(Vector3 localPosition, Vector3 deadPlayerPosition,
+                        CancellationToken token) {
+    var volume = 1f;
 
-        if (DeadPlayersList == null || DeadPlayersList.DeadPlayers.Count == 0)
-          continue;
-
-        // Run on framework thread AND await it so exceptions are observed
-        await Dalamud.Framework.RunOnFrameworkThread(() => {
-          var localPlayer =
-              Dalamud.ObjectTable.LocalPlayer;
-          if (localPlayer is null)
-            return;
-
-          foreach (var player in DeadPlayersList.DeadPlayers) {
-            if (player.DidPlayOof)
-              continue;
-
-            float volume = 1f;
-
-            if (Configuration.DistanceBasedOof &&
-                player.Distance != Vector3.Zero) {
-              var dist =
-                  Vector3.Distance(localPlayer.Position, player.Distance);
-              volume = VolumeFromDist(dist);
-            }
-
-            Play(token, volume);
-            player.DidPlayOof = true;
-            break;
-          }
-        });
-      }
-      catch (OperationCanceledException) {
-        // normal shutdown
-        break;
-      }
-      catch (Exception ex) {
-        Dalamud.Log.Error(ex, "OOF: OofAudioPolling crashed");
-        // keep loop alive instead of dying forever
-      }
+    if (Configuration.DistanceBasedOof &&
+        deadPlayerPosition != Vector3.Zero) {
+      var dist = Vector3.Distance(localPosition, deadPlayerPosition);
+      volume = VolumeFromDist(dist);
     }
+
+    Play(token, volume);
   }
 
   public float VolumeFromDist(float dist, float distMax = 30f) {
@@ -178,8 +188,6 @@ internal class SoundManager : IDisposable {
   public void Dispose() {
     CancelToken.Cancel();
     CancelToken.Dispose();
-
-    soundOut?.Dispose();
-    soundOut = null;
+    Stop();
   }
 }
