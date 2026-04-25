@@ -176,7 +176,7 @@ public sealed class OofPlugin : IDalamudPlugin {
   }
 
   private static ulong GetStablePlayerId(IPartyMember member) {
-    return member.ContentId != 0 ? member.ContentId : unchecked((ulong)member.EntityId);
+    return member.ContentId != 0 ? unchecked((ulong)member.ContentId) : unchecked((ulong)member.EntityId);
   }
 
   /// <summary>
