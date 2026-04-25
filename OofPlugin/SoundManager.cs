@@ -13,8 +13,20 @@ using System.Threading.Tasks;
 namespace OofPlugin;
 
 internal class SoundManager : IDisposable {
+  private const long DeathSoundTimeBucketSeconds = 5;
+
   private interface IPlaybackInstance : IDisposable {
     void Stop();
+  }
+
+  internal readonly struct DeathAudioEvent {
+    public DeathAudioEvent(Vector3 position, ulong stablePlayerId) {
+      Position = position;
+      StablePlayerId = stablePlayerId;
+    }
+
+    public Vector3 Position { get; }
+    public ulong StablePlayerId { get; }
   }
 
   private sealed class NAudioPlaybackInstance : IPlaybackInstance {
@@ -88,6 +100,8 @@ internal class SoundManager : IDisposable {
     soundFiles = Configuration.SoundImportPaths
                      .Where(path => !string.IsNullOrWhiteSpace(path))
                      .Distinct()
+                     .OrderBy(path => Path.GetFileName(path),
+                              StringComparer.OrdinalIgnoreCase)
                      .ToArray();
 
     if (soundFiles.Length == 0) {
@@ -117,6 +131,32 @@ internal class SoundManager : IDisposable {
 
     var soundFile = GetRandomSoundFile();
 
+    QueuePlayback(soundFile, volume, token);
+  }
+
+  private void Play(CancellationToken token, float volume, uint soundSeed) {
+    if (token.IsCancellationRequested)
+      return;
+
+    var soundFile = GetSoundFile(soundSeed);
+
+    QueuePlayback(soundFile, volume, token);
+  }
+
+  private void QueuePlayback(string soundFile, float volume,
+                             CancellationToken token) {
+    _ = Task.Run(() => {
+      try {
+        if (!token.IsCancellationRequested)
+          PlayNow(soundFile, volume);
+      }
+      catch (Exception ex) {
+        Dalamud.Log.Error("Failed to queue sound playback", ex);
+      }
+    });
+  }
+
+  private void PlayNow(string soundFile, float volume) {
     if (OperatingSystem.IsLinux()) {
       PlayLinux(soundFile, volume);
       return;
@@ -456,6 +496,35 @@ internal class SoundManager : IDisposable {
     return soundFiles[Random.Shared.Next(soundFiles.Length)];
   }
 
+  private string GetSoundFile(uint soundSeed) {
+    if (soundFiles.Length == 0) {
+      LoadFile();
+    }
+
+    return soundFiles[(int)(soundSeed % (uint)soundFiles.Length)];
+  }
+
+  public void PlayDeaths(Vector3 localPosition,
+                         IReadOnlyList<DeathAudioEvent> deaths,
+                         CancellationToken token) {
+    if (deaths.Count == 0)
+      return;
+
+    var volume = 1f;
+
+    if (Configuration.DistanceBasedOof) {
+      volume = deaths.Max(death => {
+        if (death.Position == Vector3.Zero)
+          return 1f;
+
+        var dist = Vector3.Distance(localPosition, death.Position);
+        return VolumeFromDist(dist);
+      });
+    }
+
+    Play(token, volume, CreateDeathSoundSeed(deaths));
+  }
+
   public void PlayDeath(Vector3 localPosition, Vector3 deadPlayerPosition,
                         CancellationToken token) {
     var volume = 1f;
@@ -467,6 +536,28 @@ internal class SoundManager : IDisposable {
     }
 
     Play(token, volume);
+  }
+
+  private static uint CreateDeathSoundSeed(IReadOnlyList<DeathAudioEvent> deaths) {
+    var hash = 2166136261u;
+
+    AddHashValue(ref hash, Dalamud.ClientState.TerritoryType);
+    AddHashValue(ref hash, (ulong)(DateTimeOffset.UtcNow.ToUnixTimeSeconds() /
+                                   DeathSoundTimeBucketSeconds));
+
+    foreach (var stablePlayerId in deaths.Select(death => death.StablePlayerId)
+                                          .OrderBy(stablePlayerId => stablePlayerId)) {
+      AddHashValue(ref hash, stablePlayerId);
+    }
+
+    return hash;
+  }
+
+  private static void AddHashValue(ref uint hash, ulong value) {
+    for (var i = 0; i < sizeof(ulong); i++) {
+      hash ^= (byte)(value >> (i * 8));
+      hash *= 16777619u;
+    }
   }
 
   public float VolumeFromDist(float dist, float distMax = 30f) {

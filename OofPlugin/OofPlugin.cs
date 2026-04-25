@@ -1,5 +1,6 @@
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Game.ClientState.Party;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
@@ -7,6 +8,7 @@ using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using OofPlugin.Windows;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 // shoutout anna clemens
@@ -107,11 +109,13 @@ public sealed class OofPlugin : IDalamudPlugin {
         Dalamud.Condition[ConditionFlag.InCombat])
       return;
 
+    var deaths = new List<SoundManager.DeathAudioEvent>();
+
     // Always track self death if enabled (even while in party)
     if (Configuration.OofOnDeathSelf &&
         DeadPlayersList.AddRemoveDeadPlayer(localPlayer)) {
-      SoundManager.PlayDeath(localPlayer.Position, localPlayer.Position,
-                             SoundManager.CancelToken.Token);
+      deaths.Add(new SoundManager.DeathAudioEvent(
+          localPlayer.Position, GetStablePlayerId(localPlayer)));
     }
 
     if (Dalamud.PartyList != null && Dalamud.PartyList.Any()) {
@@ -130,9 +134,8 @@ public sealed class OofPlugin : IDalamudPlugin {
                 throw new NullReferenceException("alliance reference is null");
 
             if (DeadPlayersList.AddRemoveDeadPlayer(allianceMember)) {
-              SoundManager.PlayDeath(localPlayer.Position,
-                                     allianceMember.Position,
-                                     SoundManager.CancelToken.Token);
+              deaths.Add(new SoundManager.DeathAudioEvent(
+                  allianceMember.Position, GetStablePlayerId(allianceMember)));
             }
           }
         }
@@ -144,14 +147,36 @@ public sealed class OofPlugin : IDalamudPlugin {
       // Party members (including yourself if PartyList contains you)
       if (Configuration.OofOnDeathParty) {
         foreach (var member in Dalamud.PartyList) {
-          if (member.Territory.RowId != Dalamud.ClientState.TerritoryType) return;
+          if (member.Territory.RowId != Dalamud.ClientState.TerritoryType)
+            continue;
+
           if (DeadPlayersList.AddRemoveDeadPlayer(member)) {
-            SoundManager.PlayDeath(localPlayer.Position, member.Position,
-                                   SoundManager.CancelToken.Token);
+            deaths.Add(new SoundManager.DeathAudioEvent(
+                member.Position, GetStablePlayerId(member)));
           }
         }
       }
     }
+
+    if (deaths.Count > 0) {
+      SoundManager.PlayDeaths(localPlayer.Position, deaths,
+                              SoundManager.CancelToken.Token);
+    }
+  }
+
+  private static ulong GetStablePlayerId(IPlayerCharacter character) {
+    if (Dalamud.PartyList != null) {
+      foreach (var member in Dalamud.PartyList) {
+        if (member.EntityId == character.EntityId)
+          return GetStablePlayerId(member);
+      }
+    }
+
+    return character.EntityId;
+  }
+
+  private static ulong GetStablePlayerId(IPartyMember member) {
+    return member.ContentId != 0 ? member.ContentId : member.EntityId;
   }
 
   /// <summary>
