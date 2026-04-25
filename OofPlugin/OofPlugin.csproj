@@ -3,8 +3,8 @@
 	<PropertyGroup>
 		<Authors>Frogworks Interactive</Authors>
 		<Author>Frogworks Interactive</Author>
-		<Version>2.0.0.8</Version>
-		<AssemblyVersion>2.0.0.8</AssemblyVersion>
+		<Version>2.0.0.10</Version>
+		<AssemblyVersion>2.0.0.10</AssemblyVersion>
 		<AssemblyName>OofsPlugin</AssemblyName>
 		<Name>OOFs!</Name>
 		<InternalName>OofsPlugin</InternalName>
