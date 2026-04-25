@@ -229,6 +229,7 @@ internal class SoundManager : IDisposable {
     var pwPlay = FindExecutable("pw-play");
     if (pwPlay != null) {
       var startInfo = CreateProcessStartInfo(pwPlay);
+      startInfo.ArgumentList.Add("--playback");
       startInfo.ArgumentList.Add("--volume");
       startInfo.ArgumentList.Add(volume.ToString(CultureInfo.InvariantCulture));
       startInfo.ArgumentList.Add(soundFile);
@@ -313,6 +314,7 @@ internal class SoundManager : IDisposable {
 
     var fileName = Path.GetFileName(playerPath);
     if (fileName.Equals("pw-play", StringComparison.OrdinalIgnoreCase)) {
+      startInfo.ArgumentList.Add("--playback");
       startInfo.ArgumentList.Add("--volume");
       startInfo.ArgumentList.Add(volume.ToString(CultureInfo.InvariantCulture));
     }
