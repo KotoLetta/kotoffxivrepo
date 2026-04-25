@@ -25,7 +25,7 @@
     "Punchline": "Play OOFs! on fall and/or death. The Only Plugin You Need!",
     "Description": "Play the OOFs! sound on fall and/or death. Includes options for deaths, fall damage, and custom audio.",
     "InternalName": "OofsPlugin",
-    "AssemblyVersion": "2.0.0.5",
+    "AssemblyVersion": "2.0.0.7",
     "RepoUrl": "https://github.com/KotoLetta/kotoffxivrepo",
     "ApplicableVersion": "any",
     "DalamudApiLevel": 14,
