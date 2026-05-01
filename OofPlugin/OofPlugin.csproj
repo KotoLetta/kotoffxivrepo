@@ -3,8 +3,8 @@
 	<PropertyGroup>
 		<Authors>KotoLetta</Authors>
 		<Author>KotoLetta</Author>
-		<Version>2.0.0.12</Version>
-		<AssemblyVersion>2.0.0.12</AssemblyVersion>
+		<Version>2.0.0.13</Version>
+		<AssemblyVersion>2.0.0.13</AssemblyVersion>
 		<AssemblyName>OofsPlugin</AssemblyName>
 		<Name>OOFs!</Name>
 		<InternalName>OofsPlugin</InternalName>
