@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Dalamud.NET.Sdk/14.0.1">
+<Project Sdk="Dalamud.NET.Sdk/15.0.0">
 	<PropertyGroup>
-		<Authors>Frogworks Interactive</Authors>
-		<Author>Frogworks Interactive</Author>
+		<Authors>KotoLetta</Authors>
+		<Author>KotoLetta</Author>
 		<Version>2.0.0.11</Version>
 		<AssemblyVersion>2.0.0.11</AssemblyVersion>
 		<AssemblyName>OofsPlugin</AssemblyName>
@@ -10,7 +10,12 @@
 		<InternalName>OofsPlugin</InternalName>
 		<Punchline>Play OOFs! on fall and/or death. The Only Plugin You Need!</Punchline>
 
-		<Description>OOFs!</Description>
+		<Description>Play the OOFs! sound on fall and/or death. Includes options for deaths, fall damage, and custom audio.</Description>
+		<RepoUrl>https://github.com/KotoLetta/kotoffxivrepo</RepoUrl>
+		<IconUrl>https://raw.githubusercontent.com/KotoLetta/kotoffxivrepo/main/Data/logo.png</IconUrl>
+		<Tags>oof;fall-damage;death;sound;notification</Tags>
+		<CategoryTags>other</CategoryTags>
+		<Changelog>Initial release in this plugin collection.</Changelog>
 		<Copyright></Copyright>
 		<PackageProjectUrl>https://github.com/KotoLetta/kotoffxivrepo</PackageProjectUrl>
 		<TargetFramework>net10.0-windows</TargetFramework>
@@ -28,7 +33,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Update="DalamudPackager" Version="14.0.1" />
 		<PackageReference Include="NAudio.Core" Version="2.2.1" />
 		<PackageReference Include="NAudio.Wasapi" Version="2.2.1" />		
 	</ItemGroup>

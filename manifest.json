@@ -7,7 +7,7 @@
   "AssemblyVersion": "1.0.0.0",
   "RepoUrl": "https://github.com/KotoLetta/kotoffxivrepo",
   "ApplicableVersion": "any",
-  "DalamudApiLevel": 14,
+  "DalamudApiLevel": 15,
   "IconUrl": "https://raw.githubusercontent.com/KotoLetta/kotoffxivrepo/main/icon.png",
   "Tags": [ "inspect", "items", "context-menu", "glamour" ]
 }

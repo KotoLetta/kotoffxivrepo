@@ -1,4 +1,4 @@
-<Project Sdk="Dalamud.NET.Sdk/14.0.1">
+<Project Sdk="Dalamud.NET.Sdk/15.0.0">
     <PropertyGroup>
         <AssemblyVersion>1.0.0.0</AssemblyVersion>
     </PropertyGroup>
@@ -9,7 +9,11 @@
         <InternalName>GlamSpy</InternalName>
         <Punchline>Inspect items from character inspect windows.</Punchline>
         <Description>Adds a context menu action to open hovered items in an external wiki.</Description>
+        <RepoUrl>https://github.com/KotoLetta/kotoffxivrepo</RepoUrl>
+        <IconUrl>https://raw.githubusercontent.com/KotoLetta/kotoffxivrepo/main/icon.png</IconUrl>
         <Tags>inspect;items;context-menu;glamour</Tags>
+        <CategoryTags>other</CategoryTags>
+        <Changelog>Initial release.</Changelog>
         <AcceptsFeedback>false</AcceptsFeedback>
     </PropertyGroup>
 </Project>
